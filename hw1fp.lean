@@ -14,10 +14,6 @@ example (a b c : ℝ) : a * b * c = (a * b) * c := rfl
 
 -- 3
 example (a b c : ℝ) : a * (b * c) = b * (a * c) :=
- have hbruh3 : a * (b * c) = a * b * c ↔ a * (b * c) = a * (b * c) :=
-    Eq.congr (id_eq (a * (b * c))) (mul_assoc a b c)
-  have hbruh2 : a * (b * c) = a * (b * c) ↔ a * (b * c) = (b * c) * a :=
-    Eq.congr (id_eq (a * (b * c))) (mul_comm a (b * c))
   --have h0 : a * b * c = b * a * c ↔ a * (b * c) = b * (a * c) :=
     --Eq.congr (mul_assoc a b c) (mul_assoc b a c)
   --have h1 : a * (b * c) = b * (a * c) ↔ a * b * c = b * a * c :=
@@ -26,6 +22,8 @@ example (a b c : ℝ) : a * (b * c) = b * (a * c) :=
     --Eq.congr (mul_assoc a b c) (mul_assoc b a c)
   let x := (Eq.congr (id_eq (a * b * c)) (Eq.symm (mul_assoc a b c))).mp (mul_assoc a b c)
   let y := (Eq.congr (mul_assoc a b c) (id_eq (a * b * c))).mp x
+  let z := (Eq.congr (id_eq (a * (b * c))) (mul_assoc a b c)).mp y
+  let bruh := (Eq.congr (id_eq (a * (b * c))) (mul_comm a (b * c))).mp z
 
   --let x := mp mul_comm
 
