@@ -23,6 +23,17 @@ example (a b c : ℝ) : a * (b * c) = b * (a * c) :=
   Eq.trans (Eq.trans (Eq.symm $ mul_assoc a b c) (congr_fun (congr_arg HMul.hMul (mul_comm a b)) c)) $ mul_assoc b a c
 
 -- 4
+lemma mul_fn_comm (a b : ℝ) : ((fun x => x * a) ∘ (fun x => x * b)) = ((fun x => (x * b)) ∘ (fun x => x * a)) :=
+  have h0a : ((fun x => x * a) ∘ (fun x => x * b)) = fun x => x * b * a := rfl
+  have h0b : ((fun x => x * b) ∘ (fun x => x * a)) = fun x => x * a * b := rfl
+  have h1 : (fun x => (x * a) * b) = (fun x => b * (x * a)) := funext (fun x => Eq.symm $ mul_comm b (x * a))
+  have h2 : (fun x => b * (x * a)) = (fun x => b * x * a) := funext (fun x => Eq.symm $ mul_assoc b x a)
+  have h3 : (fun x => b * x * a) = (fun x => (b * x) * a) := rfl
+  have h4 : (fun x => (b * x) * a) = (fun x => (x * b) * a) := funext (fun x => congr_arg (. * a) $ (mul_comm b x))
+
+  let x : ((fun x => x * b) ∘ (fun x => x * a)) = (fun x => (x * b) * a) := Eq.trans (Eq.trans (Eq.trans (Eq.trans h0b h1) h2) h3) h4
+  Eq.trans h0a (Eq.symm x)
+
 example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d :=
   -- A few facts we will use
   -- Function composition associates in useful ways:
@@ -33,7 +44,7 @@ example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d 
   let h1a : a * d * (b * c) = (a * d) * (b * c) := rfl
   -- Now, we can use associativity to get a * d * e * f
   let h2a : (a * d) * (b * c) = (a * d) * b * c := Eq.symm $ mul_assoc (a * d) b c
-  let h3a : (a * d) * b * c = a * d * b * c := rfl
+  let h25a : (a * d) * b * c = a * d * b * c := rfl
   -- We want to get this in terms of only function compositions
   -- since function composition associates literally however
   let fD := fun x => x * d
@@ -41,15 +52,30 @@ example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d 
   let fC := fun x => x * c
   let h3a : a * d * b * c = fC (fB (fD a)) := rfl
   let h4a : a * d * b * c = (fC ∘ fB ∘ fD) a := rfl
-  let h5a : (fC ∘ fB ∘ fD) a = ((fC ∘ fB) ∘ fD) a := rfl
-  let hbruh : fC ∘ fB = fun x => (x * b) * c := rfl
-  let hbruha : (fun x => (x * b) * c) = (fun x => c * (x * b)) := funext (fun x => Eq.symm $ mul_comm c (x * b))
-  let hbruhh : (fun x => c * (x * b)) = (fun x => c * x * b) := funext (fun x => Eq.symm $ mul_assoc c x b)
-  let hbruhh1 :  (fun x => c * x * b) = (fun x => (c * x) * b) := rfl
-  let hbruhh2 :  (fun x => (c * x) * b) = (fun x => (x * c) * b) := funext (fun x => congr_arg (. * b) $ (mul_comm c x))
-  let aweiofj : fC ∘ fB = fB ∘ fC := Eq.trans (Eq.trans (Eq.trans (Eq.trans hbruh hbruha) hbruhh) hbruhh1) hbruhh2
-  let h6a : ((fC ∘ fB) ∘ fD) a = ((fB ∘ fC) ∘ fD) a := congr_fun (congr_arg (. ∘ fD) (aweiofj)) a
-  let h6a : ((fC ∘ fB) ∘ fD) a = ((fB ∘ fC) ∘ fD) a := congr_fun (congr_arg (. ∘ fD) (aweiofj)) a
+  let h5a : fC ∘ (fB ∘ fD) = fC ∘ (fD ∘ fB) := congr_arg (fC ∘ .) (mul_fn_comm b d)
+  let h6a : fC ∘ fD ∘ fB = fD ∘ fC ∘ fB := congr_arg (. ∘ fB) (mul_fn_comm c d)
+  let h7a : fC ∘ fD ∘ fB = fD ∘ fC ∘ fB := congr_arg (. ∘ fB) (mul_fn_comm c d)
+  let h8a : (fC ∘ fB ∘ fD) a = (fD ∘ fC ∘ fB) a := congr_fun (Eq.trans h5a h6a) a
+  let h9a : (fD ∘ fC ∘ fB) a = a * b * c * d := rfl
+  let h9a : a * d * (b * c) = a * b * c * d := Eq.trans (Eq.trans (Eq.trans h2a h25a) h3a) h8a
+  --let h5a : (fC ∘ fB ∘ fD) a = ((fC ∘ fB) ∘ fD) a := rfl
+  --let hbruh : fC ∘ fB = fun x => (x * b) * c := rfl
+  --let hbruha : (fun x => (x * b) * c) = (fun x => c * (x * b)) := funext (fun x => Eq.symm $ mul_comm c (x * b))
+  --let hbruhh : (fun x => c * (x * b)) = (fun x => c * x * b) := funext (fun x => Eq.symm $ mul_assoc c x b)
+  --let hbruhh1 :  (fun x => c * x * b) = (fun x => (c * x) * b) := rfl
+  --let hbruhh2 :  (fun x => (c * x) * b) = (fun x => (x * c) * b) := funext (fun x => congr_arg (. * b) $ (mul_comm c x))
+  --let aweiofj : fC ∘ fB = fB ∘ fC := Eq.trans (Eq.trans (Eq.trans (Eq.trans hbruh hbruha) hbruhh) hbruhh1) hbruhh2
+  --let h6a : ((fC ∘ fB) ∘ fD) a = ((fB ∘ fC) ∘ fD) a := congr_fun (congr_arg (. ∘ fD) (aweiofj)) a
+  --let h7a : ((fC ∘ fB) ∘ fD) a = ((fB ∘ fC) ∘ fD) a := congr_fun (congr_arg (. ∘ fD) (aweiofj)) a
+  --let h8a : ((fB ∘ fC) ∘ fD) a = a * d * c * b := rfl
+  --let h9a : ((fD ∘ fC) ∘ fB) a = a * b * c * d := rfl
+  --let h10a : (fB ∘ fC) = (fC ∘ fB) := mul_fn_comm b c
+  --let h11a : ((fB ∘ fC) ∘ fD) = fB ∘ fC ∘ fD := rfl
+  --let h12a : fB ∘ (fC ∘ fD) = fB ∘ (fD ∘ fC) := congr_arg (fB ∘ .) (mul_fn_comm c d)
+  --let h13a : fB ∘ (fD ∘ fC) = fB ∘ fD ∘ fC := rfl
+  --let h14a : (fB ∘ fD) ∘ fC = fD ∘ fB ∘ fC := congr_arg (. ∘ fC) (mul_fn_comm b d)
+  --let h15a : fD ∘ (fB ∘ fC) = fD ∘ fC ∘ fB := congr_arg (fD ∘ .) (mul_fn_comm b c)
+  --let h : ((fC ∘ fB) ∘ fD) a = (fD ∘ fC ∘ fB) a := congr_fun () a
   sorry
 
 -- 5
