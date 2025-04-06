@@ -14,31 +14,31 @@ example (a b c : ℝ) : a * b * c = (a * b) * c := rfl
 
 -- 3
 example (a b c : ℝ) : a * (b * c) = b * (a * c) :=
-  --have h0 : a * b * c = b * a * c ↔ a * (b * c) = b * (a * c) :=
-    --Eq.congr (mul_assoc a b c) (mul_assoc b a c)
-  --have h1 : a * (b * c) = b * (a * c) ↔ a * b * c = b * a * c :=
-    --Eq.congr (Eq.symm (mul_assoc a b c)) (Eq.symm (mul_assoc b a c))
-  --have h2 : a * b * c = b * a * c ↔ a * (b * c) = b * (a * c) :=
-    --Eq.congr (mul_assoc a b c) (mul_assoc b a c)
-  let x := (Eq.congr (id_eq (a * b * c)) (Eq.symm (mul_assoc a b c))).mp (mul_assoc a b c)
-  let y := (Eq.congr (mul_assoc a b c) (id_eq (a * b * c))).mp x
-  let z := (Eq.congr (id_eq (a * (b * c))) (mul_assoc a b c)).mp y
-  let bruh := (Eq.congr (id_eq (a * (b * c))) (mul_comm a (b * c))).mp z
+  let h0 : a * (b * c) = a * b *c := Eq.symm $ mul_assoc a b c
+  let h1 : a * b *c  = b * a * c := congr_fun (congr_arg HMul.hMul (mul_comm a b)) c
+  let h2 : b * a * c = b * (a * c) := mul_assoc b a c
+  Eq.trans (Eq.trans h0 h1) h2
 
-  --let x := mp mul_comm
-
-  --have h2 := mul_assoc a b c
-  --have h3 : a * b * c = a * (b * c) ↔ a * (b * c) = a * b * c :=
-    --Eq.congr (mul_assoc a b c) (Eq.symm (mul_assoc a b c))
-  --have h4 : a * (b * c) = a * b * c ↔ a * (b * c) = a * c * b :=
-    --Eq.congr (id_eq (a * (b * c))) (mul_comm a b c)
-  sorry
+example (a b c : ℝ) : a * (b * c) = b * (a * c) :=
+  Eq.trans (Eq.trans (Eq.symm $ mul_assoc a b c) (congr_fun (congr_arg HMul.hMul (mul_comm a b)) c)) $ mul_assoc b a c
 
 -- 4
-example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d := by
-  rw [mul_assoc a b c]
-  rw [h]
-  rw [← mul_assoc]
+example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d :=
+  -- A few facts we will use
+  -- Function composition associates in useful ways:
+  -- a ∘ b ∘ c = a (b ∘ (c ∘ d))
+  -- We can easily prove a * d * (b * c) = a * d (e * f) using congr_arg
+  let h0 : a * d * (b * c) = a * d * (e * f) := congr_arg (HMul.hMul (a * d)) h
+  -- Associativity gives us (a * d) * (b * c) = a * d * (b * c)
+  let h1a : a * d * (b * c) = (a * d) * (b * c) := rfl
+  let h1b : a * d * (e * f) = (a * d) * (e * f) := rfl
+  -- Now, we can use associativity to get a * d * e * f
+  let h2a : (a * d) * (b * c) = (a * d) * b * c := Eq.symm $ mul_assoc (a * d) b c
+  let h3a : (a * d) * b * c = a * d * b * c := rfl
+  -- a = a, congruence in function
+  let h3_5a : d * b * c = b * d * c := 
+  let h4a : a * d * b * c = a * b * d * c := congr_arg (HMul.hMul a)
+  sorry
 
 -- 5
 --Please do this exercise without using the ring tactic.
