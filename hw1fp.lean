@@ -31,13 +31,20 @@ example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d 
   let h0 : a * d * (b * c) = a * d * (e * f) := congr_arg (HMul.hMul (a * d)) h
   -- Associativity gives us (a * d) * (b * c) = a * d * (b * c)
   let h1a : a * d * (b * c) = (a * d) * (b * c) := rfl
-  let h1b : a * d * (e * f) = (a * d) * (e * f) := rfl
   -- Now, we can use associativity to get a * d * e * f
   let h2a : (a * d) * (b * c) = (a * d) * b * c := Eq.symm $ mul_assoc (a * d) b c
   let h3a : (a * d) * b * c = a * d * b * c := rfl
-  -- a = a, congruence in function
-  let h3_5a : d * b * c = b * d * c := 
-  let h4a : a * d * b * c = a * b * d * c := congr_arg (HMul.hMul a)
+  -- We want to get this in terms of only function compositions
+  -- since function composition associates literally however
+  let fD := fun x => x * d
+  let fB := fun x => x * b
+  let fC := fun x => x * c
+  let h3a : a * d * b * c = fC (fB (fD a)) := rfl
+  let h4a : a * d * b * c = (fC ∘ fB ∘ fD) a := rfl
+  let h5a : (fC ∘ fB ∘ fD) a = ((fC ∘ fB) ∘ fD) a := rfl
+  let hbruha : fC ∘ fB = fun x => (x * b) * c := rfl
+  let hbruha : (fun x => (x * b) * c) = (fun x => c * (x * b)) := funext (fun x => sorry)
+  let h6a : ((fC ∘ fB) ∘ fD) a = ((fB ∘ fC) ∘ fD) a := congr_fun (congr_fun (sorry) fD) a
   sorry
 
 -- 5
