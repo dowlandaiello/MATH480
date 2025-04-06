@@ -42,9 +42,14 @@ example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d 
   let h3a : a * d * b * c = fC (fB (fD a)) := rfl
   let h4a : a * d * b * c = (fC ∘ fB ∘ fD) a := rfl
   let h5a : (fC ∘ fB ∘ fD) a = ((fC ∘ fB) ∘ fD) a := rfl
-  let hbruha : fC ∘ fB = fun x => (x * b) * c := rfl
-  let hbruha : (fun x => (x * b) * c) = (fun x => c * (x * b)) := funext (fun x => sorry)
-  let h6a : ((fC ∘ fB) ∘ fD) a = ((fB ∘ fC) ∘ fD) a := congr_fun (congr_fun (sorry) fD) a
+  let hbruh : fC ∘ fB = fun x => (x * b) * c := rfl
+  let hbruha : (fun x => (x * b) * c) = (fun x => c * (x * b)) := funext (fun x => Eq.symm $ mul_comm c (x * b))
+  let hbruhh : (fun x => c * (x * b)) = (fun x => c * x * b) := funext (fun x => Eq.symm $ mul_assoc c x b)
+  let hbruhh1 :  (fun x => c * x * b) = (fun x => (c * x) * b) := rfl
+  let hbruhh2 :  (fun x => (c * x) * b) = (fun x => (x * c) * b) := funext (fun x => congr_arg (. * b) $ (mul_comm c x))
+  let aweiofj : fC ∘ fB = fB ∘ fC := Eq.trans (Eq.trans (Eq.trans (Eq.trans hbruh hbruha) hbruhh) hbruhh1) hbruhh2
+  let h6a : ((fC ∘ fB) ∘ fD) a = ((fB ∘ fC) ∘ fD) a := congr_fun (congr_arg (. ∘ fD) (aweiofj)) a
+  let h6a : ((fC ∘ fB) ∘ fD) a = ((fB ∘ fC) ∘ fD) a := congr_fun (congr_arg (. ∘ fD) (aweiofj)) a
   sorry
 
 -- 5
