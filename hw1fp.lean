@@ -48,6 +48,7 @@ lemma mul_assoc_4 (a b c d : ℝ) : a * d * (b * c) = a * b * c * d :=
   Eq.trans (Eq.trans (Eq.trans h2a h25a) h3a) h8a
 
 example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d :=
+  -- See above lemmas
   -- A few facts we will use
   -- Function composition associates in useful ways:
   -- a ∘ b ∘ c = a (b ∘ (c ∘ d))
@@ -61,11 +62,6 @@ example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d 
 
 -- 5
 --Please do this exercise without using the ring tactic.
-example (a b : ℝ) : a^3 - b^3 = (a-b)*(a^2+a*b+b^2) := by
-  -- Cheeky solution
-  linarith
-
--- More drawn out solution to #5
 example (a b : ℝ) : a^3 - b^3 = (a-b)*(a^2+a*b+b^2) := by
   simp [sub_eq_add_neg]
   simp [left_distrib]
@@ -115,9 +111,7 @@ example (a b : ℝ) : a^3 - b^3 = (a-b)*(a^2+a*b+b^2) := by
   simp [h2]
 
 -- 6: Product of two odd numbers is odd.
-example : ∀ m n : Nat, Odd m ∧ Odd n → Odd (m * n) := by
-  simp [imp_and]
-  apply Odd.mul
+example : ∀ m n : Nat, Odd m ∧ Odd n → Odd (m * n) := fun _ _ ⟨hm, hn⟩ => Odd.mul hm hn
 
 -- 7
 -- Useful lemma
@@ -144,30 +138,14 @@ example : False → P := False.elim
 example : P → ¬¬P := not_not_intro
 
 -- 11
-example : P ∧ Q → Q := by
-  intro a
-  obtain ⟨h1, h2⟩ := a
-  apply h2
+example : P ∧ Q → Q := And.right
 
 -- 12
-example : (P → Q → R) → P ∧ Q → R := by
-  intro a b
-  obtain ⟨h1, h2⟩ := b
-  apply a
-  apply h1
-  exact h2
+example : (P → Q → R) → P ∧ Q → R
+  | a, ⟨hp, hq⟩ => a hp hq
 
 -- 14
-example : ∀ x : ℝ, ∃ y, y + x = 2 := by
-  intro x
-  use 2 - x
-  rw [sub_eq_add_neg]
-  rw [add_assoc]
-  rw [add_comm]
-  rw [neg_add_cancel]
-  rw [zero_add]
+example : ∀ x : ℝ, ∃ y, y + x = 2 := fun x => ⟨2 + -x, by simp⟩
 
 -- 15
-example : ∃ x : ℝ, 3 * x + 7 ≠ 12 := by
-  use 4
-  norm_num
+example : ∃ x : ℝ, 3 * x + 7 ≠ 12 := ⟨4, by norm_num⟩
