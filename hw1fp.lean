@@ -3,6 +3,8 @@
 import Mathlib.Tactic
 --Helpful tactics: rfl, rintro, use, rw, intro, exact, apply, triv, exfalso, left, right, cases'
 
+-- Little note: I solved a few of these problems in term mode for fun.
+
 -- 1
 example : 3 + 2 = 5 := rfl
 
@@ -23,23 +25,24 @@ example (a b c : ℝ) : a * (b * c) = b * (a * c) :=
   Eq.trans (Eq.trans (Eq.symm $ mul_assoc a b c) (congr_fun (congr_arg HMul.hMul (mul_comm a b)) c)) $ mul_assoc b a c
 
 -- 4
-lemma mul_fn_comm (a b : ℝ) : ((fun x => x * a) ∘ (fun x => x * b)) = ((fun x => (x * b)) ∘ (fun x => x * a)) :=
-  have h0a : ((fun x => x * a) ∘ (fun x => x * b)) = fun x => x * b * a := rfl
-  have h0b : ((fun x => x * b) ∘ (fun x => x * a)) = fun x => x * a * b := rfl
-  have h1 : (fun x => (x * a) * b) = (fun x => b * (x * a)) := funext (fun x => Eq.symm $ mul_comm b (x * a))
-  have h2 : (fun x => b * (x * a)) = (fun x => b * x * a) := funext (fun x => Eq.symm $ mul_assoc b x a)
-  have h3 : (fun x => b * x * a) = (fun x => (b * x) * a) := rfl
-  have h4 : (fun x => (b * x) * a) = (fun x => (x * b) * a) := funext (fun x => congr_arg (. * a) $ (mul_comm b x))
+-- Some lemmas for solving this in term mode for fun
+lemma mul_fn_comm (a b : ℝ) : ((. * a) ∘ (. * b)) = ((. * b) ∘ (. * a)) :=
+  have h0a : ((. * a) ∘ (. * b)) = (. * b * a) := rfl
+  have h0b : ((. * b) ∘ (. * a)) = (. * a * b) := rfl
+  have h1 : (. * a * b) = (fun x => b * (x * a)) := funext (fun x => Eq.symm $ mul_comm b (x * a))
+  have h2 : (fun x => b * (x * a)) = (b * . * a) := funext (fun x => Eq.symm $ mul_assoc b x a)
+  have h3 : (b * . * a) = (b * . * a) := rfl
+  have h4 : (b * . * a) = (. * b * a) := funext (fun x => congr_arg (. * a) $ (mul_comm b x))
 
-  let x : ((fun x => x * b) ∘ (fun x => x * a)) = (fun x => (x * b) * a) := Eq.trans (Eq.trans (Eq.trans (Eq.trans h0b h1) h2) h3) h4
+  let x : ((. * b) ∘ (. * a)) = (. * b * a) := Eq.trans (Eq.trans (Eq.trans (Eq.trans h0b h1) h2) h3) h4
   Eq.trans h0a (Eq.symm x)
 
 lemma mul_assoc_4 (a b c d : ℝ) : a * d * (b * c) = a * b * c * d :=
   let h2a : (a * d) * (b * c) = (a * d) * b * c := Eq.symm $ mul_assoc (a * d) b c
   let h25a : (a * d) * b * c = a * d * b * c := rfl
-  let fD := fun x => x * d
-  let fB := fun x => x * b
-  let fC := fun x => x * c
+  let fD := (. * d)
+  let fB := (. * b)
+  let fC := (. * c)
   let h3a : a * d * b * c = fC (fB (fD a)) := rfl
   let h5a : fC ∘ (fB ∘ fD) = fC ∘ (fD ∘ fB) := congr_arg (fC ∘ .) (mul_fn_comm b d)
   let h6a : fC ∘ fD ∘ fB = fD ∘ fC ∘ fB := congr_arg (. ∘ fB) (mul_fn_comm c d)
@@ -47,6 +50,7 @@ lemma mul_assoc_4 (a b c d : ℝ) : a * d * (b * c) = a * b * c * d :=
 
   Eq.trans (Eq.trans (Eq.trans h2a h25a) h3a) h8a
 
+-- Actual solution
 example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d :=
   -- See above lemmas
   -- A few facts we will use
@@ -62,53 +66,11 @@ example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d 
 
 -- 5
 --Please do this exercise without using the ring tactic.
-example (a b : ℝ) : a^3 - b^3 = (a-b)*(a^2+a*b+b^2) := by
-  simp [sub_eq_add_neg]
-  simp [left_distrib]
-  simp [right_distrib]
-  simp [pow_two]
-  simp [← pow_three]
-  simp [← add_assoc]
-  simp [← sub_eq_add_neg]
-  have h1 : b * (a * a) = a * (a * b) := by
-    simp [← mul_assoc]
-    conv =>
-      left
-      simp [mul_comm]
-      simp [← mul_assoc]
-      rfl
-  have h2 : b * (a * b) = a * (b * b) := by
-    conv =>
-      right
-      simp [← mul_assoc]
-      simp [← mul_comm]
-      rfl
-  simp [h1]
-  simp [h2]
-
-example (a b : ℝ) : a^3 - b^3 = (a-b)*(a^2+a*b+b^2) := by
-  simp [sub_eq_add_neg]
-  simp [left_distrib]
-  simp [right_distrib]
-  simp [pow_two]
-  simp [← pow_three]
-  simp [← add_assoc]
-  simp [← sub_eq_add_neg]
-  have h1 : b * (a * a) = a * (a * b) := by
-    simp [← mul_assoc]
-    conv =>
-      left
-      simp [mul_comm]
-      simp [← mul_assoc]
-      rfl
-  have h2 : b * (a * b) = a * (b * b) := by
-    conv =>
-      right
-      simp [← mul_assoc]
-      simp [← mul_comm]
-      rfl
-  simp [h1]
-  simp [h2]
+example (a b : ℝ) : a^3 - b^3 = (a-b)*(a^2+a*b+b^2) :=
+  -- Distribute a - b by converting to a + -b
+  have h : (a-b)*(a^2+a*b+b^2) = (a + -b) * (a^2 + a*b + b^2) := congr_fun (congr_arg HMul.hMul (sub_eq_add_neg a b)) (a^2 + a*b + b^2)
+  have h1 : (a + -b) * (a^2 + a*b + b^2) = a * (a^2+a*b+b^2) + -b * (a^2+a*b+b^2) := right_distrib a (-b) (a^2 + a * b + b^2)
+  sorry
 
 -- 6: Product of two odd numbers is odd.
 example : ∀ m n : Nat, Odd m ∧ Odd n → Odd (m * n) := fun _ _ ⟨hm, hn⟩ => Odd.mul hm hn

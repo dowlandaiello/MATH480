@@ -15,25 +15,53 @@ def sub {α : Type} {n : ℕ} [Sub α] : MyVector α n → MyVector α n → MyV
 -- Take a look at the definition of a functor
 
 def mapvector_2 {α : Type} {n : ℕ} : (α → α → α) → MyVector α n → MyVector α n → MyVector α n
-  | f, a, b => ⟨Array.map (fun (a, b) => f a b) $ ((Vector.toArray a).zip (Vector.toArray b)), by simp⟩
+  | f, a, b => ⟨Array.zipWith f (Vector.toArray a) (Vector.toArray b), by simp⟩
 
-instance Functor 
+def add {α : Type} {n : ℕ} [Add α] : MyVector α n → MyVector α n → MyVector α n := mapvector_2 Add.add
 
-def add : MyVector → MyVector → MyVector
-  | ⟨x₁, y₁, z₁⟩, ⟨x₂, y₂, z₂⟩ => ⟨x₁ + x₂, y₁ + y₂, z₁ + z₂⟩
+def dot {α : Type} {n : ℕ} [Zero α] [Add α] [Mul α] : MyVector α n → MyVector α n → α
+  | a, b => Array.sum ∘ Vector.toArray $ (mapvector_2 Mul.mul a b)
 
-def dot : MyVector → MyVector → ℝ
-  | ⟨x₁, y₁, z₁⟩, ⟨x₂, y₂, z₂⟩ => x₁ * x₂ + y₁ * y₂ + z₁ * z₂
+lemma a_dot_a_eq_mag_a_squared {α : Type} {n : ℕ} (a : MyVector α n) [Semiring α] : dot a a = (magnitude a) * (magnitude a) := by
+  let ⟨⟨l⟩, _⟩ := a
 
-lemma a_dot_a_eq_mag_a_squared (a : MyVector) : dot a a = (magnitude a) ^ 2 := by
-  match a with
-  | (x, (y, z)) =>
+  induction l with
+  | nil =>
     unfold dot
     unfold magnitude
     simp
-    rw [pow_two]
-    rw [Real.mul_self_sqrt $ add_nonneg (add_nonneg (pow_two_nonneg x) (pow_two_nonneg y)) (pow_two_nonneg z)]
-    repeat rw [pow_two]
+    unfold mapvector_2
+    simp
+  | cons x xs =>
+    unfold dot
+    unfold magnitude
+    simp
+    unfold mapvector_2
+    simp
+    simp [map_mul]
+    --simp
+    --repeat rw [left_distrib]
+    --repeat rw [right_distrib]
+    --rw [add_assoc]
+    --rw [Mul.mul]
+    --simp [HMul.hMul]
+    --rw [Distrib.toMul]
+    --rw [Mul.mul]
+    --exact (congr rfl (by {
+    --  rw [← Distrib.toMul]
+    --  rw [← Mul.mul]
+    --  
+    --  sorry
+    --}))
+  --match a with
+  --| (x, (y, z)) =>
+  --  unfold dot
+  --  unfold magnitude
+  --  simp
+  --  rw [pow_two]
+  --  rw [Real.mul_self_sqrt $ add_nonneg (add_nonneg (pow_two_nonneg x) (pow_two_nonneg y)) (pow_two_nonneg z)]
+  --  repeat rw [pow_two]
+  sorry
 
 lemma zero_dot (a : MyVector) : dot ⟨0,0,0⟩ a = 0 := by
   unfold dot
