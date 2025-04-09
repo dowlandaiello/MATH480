@@ -121,3 +121,18 @@ def fst' {ta : Type} {tb : Type} : ta → tb → ta := fun first_elem _ => first
 -- The usual notation is to use greek letters for type parameters
 def snd' {α β : Type} : α → β → α := fun first_elem _ => first_elem
 
+-- Example: the S K combinators
+-- K x y   = x
+-- S x y z = x z (y z)
+def k {α : Type} {β : Type} (a : α) (_ : β) := a
+
+def s {α : Type} {β : Type} {γ : Type} (y : β → α) (x : β → α → γ) (z : β) := x z (y z)
+
+-- Extra: we can do this in tactic mode treating this like a prop logic problem
+def s' {α : Type} {β : Type} {γ : Type} (y : β → α) (x : β → α → γ) (z : β) : γ := by
+  apply x
+  apply z
+  apply y
+  apply z
+
+-- HMM
