@@ -35,25 +35,19 @@ def myid := fun x : ℕ => x
 -- Here, the type of myid is inferred from our typign of x
 -- However, we can be more explicit if we want
 -- Here is the notation for typing a lambda
-def myid2 : ℕ → ℕ := fun x : ℕ => x
+def myid' : ℕ → ℕ := fun x : ℕ => x
 
 -- We can remove the type for x now
-def myid3 : ℕ → ℕ := fun x => x
+def myid'' : ℕ → ℕ := fun x => x
 
 -- This notation is semantically equivalent in this case to
 -- a named definition with a named x parameter
-def myid4 (n : ℕ) : ℕ := n
+def myid''' (n : ℕ) : ℕ := n
 
 -- I mean semantically equivalent in that their usage is the same
-#check myid4 1
+#check myid''' 1
 #check myid 2
-
--- However, notice that the type annotation after the colon is **not** ℕ → ℕ
--- This is because myid4 can be though of as a term n that depends on a value n
--- In other words, the term myid4 is syntactically n, not ℕ → ℕ.
--- Notice their types are not the same
-#check myid4
-#check myid3
+#check (myid''')
 
 -- Lean's type system is based on a powerful, expressive type system
 -- called the calculus of constructions
@@ -67,10 +61,12 @@ def myid4 (n : ℕ) : ℕ := n
 
 -- We can define our own type, for example, as a term
 -- This unlike other languages where there is a barrier between types and terms
-def MyType := Type
+def MyType : Type := ℕ
 
 -- This is kind of useless, but we can now type a function with our type
 def myfunc : MyType → MyType := fun x => x
+
+#check myfunc
 
 -- This is perfectly valid
 -- So, if types can be terms, and terms can be types,
@@ -84,16 +80,19 @@ def myfunc : MyType → MyType := fun x => x
 -- fst a b => a
 -- snd a b => b
 
--- We can obviously say that fst is a function that takes in a type a, a type b, a value of type a, a value of type b, and returns a (of type a)
+-- We can obviously say that fst is a function that takes in a type a, a type b,
+-- a value of type a called first_elem, a value of type b called second_elem,
+-- and returns first_elem (of type a)
+--
 -- However, if we want to return type a, we need some way to refer to it
 -- This is where named parameters become handy
-def fst (ta : Type) (tb : Type) : ta → tb → ta := fun a _ => a
+def fst (ta : Type) (tb : Type) : ta → tb → ta := fun first_elem _ => first_elem
 
--- Or, more concisely:
-def fst2 (ta : Type) (tb : Type) : ta → tb → ta := Function.const tb
+#check fst ℕ
+#check fst ℕ ℝ
 
 -- Snd is easy
-def snd (ta : Type) (tb : Type) : ta → tb → tb := fun _ b => b
+def snd (ta : Type) (tb : Type) : ta → tb → tb := fun _ second_elem => second_elem
 
 -- This is the power of dependent typing
 -- Types are terms.
@@ -114,4 +113,11 @@ def vector4 := Vector ℕ 4
 -- This does not
 #check (⟨⟨[1, 2, 3, 4, 5]⟩, by simp⟩ : vector4)
 
--- Beautiful.
+-- Conveniences
+
+-- We can rewrite our fst and snd functions to use implict parameters
+def fst' {ta : Type} {tb : Type} : ta → tb → ta := fun first_elem _ => first_elem
+
+-- The usual notation is to use greek letters for type parameters
+def snd' {α β : Type} : α → β → α := fun first_elem _ => first_elem
+

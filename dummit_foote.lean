@@ -29,8 +29,8 @@ lemma identity_unique {α : Type} (op : α → α → α) : ∀ e₁ e₂, is_id
       right
       rw [b2]
 
-lemma inv_uniquely_determined {α : Type} (op : α → α → α) (a : α) (e : α) (h_id_all : ∀ a, op a e = a ∧ op e a = a) (h_associative : bin_op_associative op): ∀ inv₁ inv₂, is_inverse_for op inv₁ a e ∧ is_inverse_for op inv₂ a e → inv₁ = inv₂
-  | inv₁, inv₂, ⟨is_inv₁, is_inv₂⟩ => by
+lemma inv_uniquely_determined {α : Type} (op : α → α → α) (e : α) (h_id_all : ∀ a, op a e = a ∧ op e a = a) (h_associative : bin_op_associative op): ∀ a inv₁ inv₂, is_inverse_for op inv₁ a e ∧ is_inverse_for op inv₂ a e → inv₁ = inv₂
+  | a, inv₁, inv₂, ⟨is_inv₁, is_inv₂⟩ => by
     unfold is_inverse_for at is_inv₁
     unfold is_inverse_for at is_inv₂
 
@@ -57,3 +57,11 @@ lemma inv_uniquely_determined {α : Type} (op : α → α → α) (a : α) (e : 
     simp [h_id_all] at he
 
     exact (Eq.symm he)
+
+lemma inv_inv_eq_a {α : Type} (op : α → α → α) (e : α) (h_id_all : ∀ a, op a e = a ∧ op e a = a) (h_associative : bin_op_associative op) : ∀ a a_inv a_inv_inv, is_inverse_for op a_inv a e ∧ is_inverse_for op a_inv_inv a_inv e → op (op a a_inv) a_inv_inv = a
+  | a, a_inv, a_inv_inv, ⟨a_inv_is_inverse, a_inv_inv_is_inverse⟩ => by
+    have h : op a_inv a_inv_inv = e := (a_inv_inv_is_inverse h_id_all).left
+    rw [h_associative a a_inv a_inv_inv]
+    rw [h]
+
+    exact And.left $ h_id_all a
