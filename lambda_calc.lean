@@ -120,7 +120,7 @@ def fst' {ta : Type} {tb : Type} : ta → tb → ta := fun first_elem _ => first
 
 -- The usual notation is to use greek letters for type parameters
 def snd' {α β : Type} : α → β → α := fun first_elem _ => first_elem
-
+#check ℝ
 -- Example: the S K combinators
 -- K x y   = x
 -- S x y z = x z (y z)
@@ -135,4 +135,37 @@ def s' {α : Type} {β : Type} {γ : Type} (y : β → α) (x : β → α → γ
   apply y
   apply z
 
--- HMM
+-- Say we would like to define a ring
+-- and define multiplication and addition ourselves
+def binop (α : Type) := α → α → α
+
+-- Axioms for rings
+-- + axioms:
+--   + is associative
+--   + is commutative
+--   there is an additive identity
+--   there is an additive inverse
+-- * axioms:
+--   * is associative
+--   there is a multiplicative identity
+-- * distributes over +
+def associative {α : Type} (op : binop α) (a b c : α) := op (op a b) c = op a (op b c)
+
+def plus_commutative {α : Type} (opplus : binop α) (a b : α) := opplus a b  = opplus b a
+def add_identity {α : Type} (opplus : binop α) (a zero : α) := opplus a zero = a
+def add_inverse {α : Type} (opplus : binop α) (a inv zero : α) :=
+  let has_identity := add_identity opplus a zero
+  has_identity → opplus a inv = zero
+
+def mul_identity {α : Type} (opmul : binop α) (a id : α) := opmul a id = a ∧ opmul id a = a
+
+def mul_distrib {α : Type} (opmul opplus : binop α) (a b c : α) :=
+  let left := opmul a (opmul b c) = opplus (opmul a b) (opmul a c)
+  let right := opmul (opplus b c) a = opplus (opmul b a) (opmul c a)
+
+  left ∧ right
+
+-- Let's prove the identity is unique
+-- Additive identity in a group is unique
+lemma add_identity_unique {α : Type} (opplus : binop α) (a : α) : ∃ id₁ id₂, (∀ b, add_identity opplus b id₁ ∧ add_identity opplus b id₂) → id₁ = id₂ := by
+    sorry

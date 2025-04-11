@@ -11,6 +11,7 @@ def is_inverse {α : Type} (op : α → α → α) (inv : α) := ∀ a e, is_ide
 def is_inverse_for {α : Type} (op : α → α → α) (inv : α) (a : α) (e : α) := is_identity op e → op a inv = e ∧ op inv a = e
 def has_inverse {α : Type} (op : α → α → α) := ∃ inv, is_inverse op inv
 def has_inverse_for {α : Type} (op : α → α → α) (a : α) := ∃ e inv, is_identity op e → op a inv = e ∧ op inv a = e
+def has_inverse_with {α : Type} (op : α → α → α) (a : α) (e : α) := ∃ inv, is_identity op e → op a inv = e ∧ op inv a = e
 
 -- Abelian group axioms
 def is_abelian {α : Type} (op : α → α → α) := ∀ a b, op a b = op b a
@@ -28,6 +29,11 @@ lemma identity_unique {α : Type} (op : α → α → α) : ∀ e₁ e₂, is_id
       right
       right
       rw [b2]
+
+def my_gcd (a b : ℕ) : Option ℕ :=
+  match List.reverse (Array.toList $ (List.filter (fun d => d ∣a ∧ d∣ b) (List.range (min a b + 1)).tail).toArray.qsort) with
+  | List.cons x _ => pure x
+  | List.nil => none
 
 lemma inv_uniquely_determined {α : Type} (op : α → α → α) (e : α) (h_id_all : ∀ a, op a e = a ∧ op e a = a) (h_associative : bin_op_associative op): ∀ a inv₁ inv₂, is_inverse_for op inv₁ a e ∧ is_inverse_for op inv₂ a e → inv₁ = inv₂
   | a, inv₁, inv₂, ⟨is_inv₁, is_inv₂⟩ => by
@@ -65,3 +71,7 @@ lemma inv_inv_eq_a {α : Type} (op : α → α → α) (e : α) (h_id_all : ∀ 
     rw [h]
 
     exact And.left $ h_id_all a
+
+lemma inv_distributes_op {α : Type} (op : α → α → α) (e : α) (h_id_all : ∀ a, op a e = a ∧ op e a = a) (h_inverse_all : ∀ a, has_inverse_with op a e) : ∀ a b, ∃ inv inva invb, is_inverse_for op inva a e → is_inverse_for op invb b e  → is_inverse_for op inv (op a b) e → op inv (op a b) = op (invb inva) := sorry
+
+
