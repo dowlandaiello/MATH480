@@ -120,7 +120,6 @@ example : TendsTo (fun n ↦ 0) 0
    | ε, (he_zero : 0 < ε) => ⟨Nat.ceil ε, fun x (h_x : ⌈ε⌉₊ ≤ x) => by
      simp
      have h : |(↑x)⁻¹| < ε := (abs_lt).mpr (by
-       constructor
        have h : ((↑x : ℝ))⁻¹ ≤ 1 := Nat.cast_inv_le_one x
        have h₂ : 0 ≤ ((↑x : ℝ))⁻¹ := by
          simp at h
@@ -128,9 +127,23 @@ example : TendsTo (fun n ↦ 0) 0
        have h₃ : -ε < 0 := by
          simp [he_zero]
        have h₄ : -ε < ((↑x : ℝ))⁻¹ := by
-         
-
-       sorry
+         simp [lt_of_lt_of_le h₃ h₂]
+       constructor
+       exact h₄
+       have h₆ : ⌈ε⌉₊ > 0 := by
+         simp
+         exact he_zero
+       have hbruh : 0 < x := by
+         simp [lt_of_lt_of_le h₆ h_x]
+       have hbruh' : 0 < ((↑x)⁻¹ : ℝ) := by
+         simp_all
+       have h₇ : ε ≤ ⌈ε⌉₊ := by
+         simp [Nat.le_ceil]
+       have h₉ : ε ≤ x := le_trans h₇ (by simp_all [h₇, h_x])
+       have h11 := (neg_lt.mpr h₄)
+       have h12 : -((↑x : ℝ))⁻¹ ≤ 0 := by
+         simp
+       have h12 : ((↑x)⁻¹)⁻¹ < ε⁻¹ ↔ ε < (↑x)⁻¹ := inv_lt_inv₀ (hbruh') he_zero
      )
      simp_all [Nat.ceil_le]
    ⟩
