@@ -123,8 +123,6 @@ example : TendsTo (fun n ↦ 0) 0
      apply inv_lt_of_inv_lt₀
      exact he_zero
      simp_all
-     have h : 1 ≤ x := by
-       linarith
      have h2 : (↑⌈ε⁻¹⌉₊ : ℝ) < x := by
        simp [Nat.cast_lt]
        exact h_x
@@ -135,5 +133,31 @@ example : TendsTo (fun n ↦ 0) 0
 
 --Problem 10: limit of a sum is the sum of the limits
 theorem tendsTo_add {a₁ a₂ : ℕ → ℝ} {L₁ L₂ : ℝ} (h₁ : TendsTo a₁ L₁) (h₂ : TendsTo a₂ L₂) :
-    TendsTo (fun n ↦ a₁ n + a₂ n) (L₁ + L₂) := by
-  sorry
+    TendsTo (fun n ↦ a₁ n + a₂ n) (L₁ + L₂) := fun ε hε =>
+    -- Ideal case: ε > 0, a₁ x + a₂ x - (L₁ + L₂) = 0
+    -- We already know Nat.ceil (1 / ε) + 1 will mean ⌈1 / ε⌉₊ + 1 ≤ x
+    -- which produces a ratio smaller than x
+    -- We're not dealing with ratios here, so we can't do that
+    -- However, (L₁ + L₂) - (L₁ + L₂) will get us there
+    --  the functions a₁ and a₂ respectively already tend to L₁ and L₂.
+    -- This means, we can pattern match the N values from each
+    let ⟨N₁, h_N₁⟩ := h₁ (ε / 2) (by simp [hε])
+    let ⟨N₂, h_N₂⟩ := h₂ (ε / 2) (by simp[hε])
+
+    ⟨max N₁ N₂, fun x hx => by
+      let ⟨x_ge_N₁, x_ge_N₂⟩ : x ≥ N₁ ∧ x ≥ N₂ := max_le_iff.mp (by simp_all)
+      let h_Nx₁ := h_N₁ x x_ge_N₁
+      let h_Nx₂ := h_N₂ x x_ge_N₂
+      simp_all
+      let h_εhalf_lt_ε : ε / 2 < ε := div_lt_self hε (by simp)
+      let h_add_lt_ε := abs_add (a₁ x - L₁) (a₂ x - L₂)
+      let h₂ : |a₁ x + a₂ x - (L₁ + L₂)| ≤ |a₁ x - L₁| + |a₂ x - L₂| := by {
+        calc
+          |a₁ x + a₂ x - (L₁ + L₂)| = |a₁ x - L₁ + (a₂ x - L₂)| := by ring_nf
+          |a₁ x - L₁ + (a₂ x - L₂)| ≤ |a₁ x - L₁| + |a₂ x - L₂| := by
+            exact h_add_lt_ε
+      }
+      let h₃ : |a₁ x - L₁| + |a₂ x - L₂| < ε := by
+        linarith
+      linarith
+    ⟩
