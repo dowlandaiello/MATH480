@@ -117,35 +117,20 @@ example : TendsTo (fun n ↦ 0) 0
 
 --Problem 9: the limit of 1/n is 0
  example : TendsTo (fun n ↦ 1/n) 0
-   | ε, (he_zero : 0 < ε) => ⟨Nat.ceil ε, fun x (h_x : ⌈ε⌉₊ ≤ x) => by
+   | ε, (he_zero : 0 < ε) => ⟨Nat.ceil (1 / ε) + 1, fun x (h_x : ⌈1 / ε⌉₊ + 1 ≤ x) => by
      simp
-     have h : |(↑x)⁻¹| < ε := (abs_lt).mpr (by
-       have h : ((↑x : ℝ))⁻¹ ≤ 1 := Nat.cast_inv_le_one x
-       have h₂ : 0 ≤ ((↑x : ℝ))⁻¹ := by
-         simp at h
-         simp
-       have h₃ : -ε < 0 := by
-         simp [he_zero]
-       have h₄ : -ε < ((↑x : ℝ))⁻¹ := by
-         simp [lt_of_lt_of_le h₃ h₂]
-       constructor
-       exact h₄
-       have h₆ : ⌈ε⌉₊ > 0 := by
-         simp
-         exact he_zero
-       have hbruh : 0 < x := by
-         simp [lt_of_lt_of_le h₆ h_x]
-       have hbruh' : 0 < ((↑x)⁻¹ : ℝ) := by
-         simp_all
-       have h₇ : ε ≤ ⌈ε⌉₊ := by
-         simp [Nat.le_ceil]
-       have h₉ : ε ≤ x := le_trans h₇ (by simp_all [h₇, h_x])
-       have h11 := (neg_lt.mpr h₄)
-       have h12 : -((↑x : ℝ))⁻¹ ≤ 0 := by
-         simp
-       have h12 : ((↑x)⁻¹)⁻¹ < ε⁻¹ ↔ ε < (↑x)⁻¹ := inv_lt_inv₀ (hbruh') he_zero
-     )
-     simp_all [Nat.ceil_le]
+     rw [abs_of_pos (by simp [Nat.cast_pos]; linarith)]
+     apply inv_lt_of_inv_lt₀
+     exact he_zero
+     simp_all
+     have h : 1 ≤ x := by
+       linarith
+     have h2 : (↑⌈ε⁻¹⌉₊ : ℝ) < x := by
+       simp [Nat.cast_lt]
+       exact h_x
+     have h3 : ε⁻¹ ≤ (↑⌈ε⁻¹⌉₊ : ℝ) := by
+       simp [Nat.le_ceil]
+     simp [lt_of_le_of_lt h3 h2]
    ⟩
 
 --Problem 10: limit of a sum is the sum of the limits
