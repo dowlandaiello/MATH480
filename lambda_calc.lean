@@ -72,27 +72,53 @@ def myfunc : MyType → MyType := fun x => x
 -- So, if types can be terms, and terms can be types,
 -- can types be functions? And what does that mean?
 -- Let's try it out.
--- Supposed we want to create a tuple type
--- that stores two types next to each other
--- We will do this by defining a fst function and a snd function
--- the fst function returns the first of two elements
--- and the snd function returns the second of two elements:
--- fst a b => a
--- snd a b => b
+-- Ideally, we want our tuple to allow different types
+-- to be stored next to each other.
 
--- We can obviously say that fst is a function that takes in a type a, a type b,
--- a value of type a called first_elem, a value of type b called second_elem,
--- and returns first_elem (of type a)
---
--- However, if we want to return type a, we need some way to refer to it
--- This is where named parameters become handy
-def fst (ta : Type) (tb : Type) : ta → tb → ta := fun first_elem _ => first_elem
+-- Let's define the type of our tuple container
+-- Tuple is obviously going to be a type.
+-- However, Tuple ℕ ℝ is not the same type as Tuple ℚ ℝ
+-- So, how can we make them different?
+-- We can make our type a function of the two types
+-- to create a new type
+def Tuple : Type → Type → Type 1 := fun _t1 _t2 => Type
 
-#check fst ℕ
-#check fst ℕ ℝ
+-- Now, we can make a Tuple of ℕ and ℝ
+def my_tup : Tuple ℝ ℕ := sorry
 
--- Snd is easy
-def snd (ta : Type) (tb : Type) : ta → tb → tb := fun _ second_elem => second_elem
+-- Here, we called Tuple as a function to create a new type, which is the type of my_tup
+
+#check my_tup
+
+-- Ideally, we would like to use our tuple like such fist (mk_tup 1 2) = 1
+-- snd (mk_tup 1 2) = 2
+-- We can say that the return type of our tup function is a Tuple α β,
+-- where α and β are the input types to the Tuple
+-- However, we will need some way to reference these types
+def mk_tup (α : Type) (β : Type) (val1 : α) (val2 : β) : Tuple α β := Sort 0
+
+-- This is kind of useless, since we won't have a way to retrieve the values later
+-- Sort here indicates the type universe below Type n.
+-- Sort n = Type n + 1
+#check (Sort 1) = Type 0
+
+def Tuple' (α : Type) (β : Type) : Type 1 := ∀ (γ : Type), (α → β → γ) → γ
+def TupleMaker (α : Type) (β : Type) := α → β → Tuple' α β
+
+def mk_tup' (α : Type) (β : Type) : TupleMaker α β :=
+  fun x y _ f => (f x) y
+
+-- And a first function
+def fst (α : Type) (β : Type) : Tuple' α β → α :=
+  fun tup => tup α (fun x _ => x)
+
+def snd (α : Type) (β : Type) : Tuple' α β → β :=
+  fun tup => tup β (fun _ y => y)
+
+-- Now, we can make a Tuple of ℕ and ℝ
+def my_tup' : Tuple' ℝ ℕ := mk_tup' ℝ ℕ (0 : ℝ) (1 : ℕ)
+
+def first_elem := fst ℝ ℕ my_tup'
 
 -- This is the power of dependent typing
 -- Types are terms.
@@ -116,11 +142,12 @@ def vector4 := Vector ℕ 4
 -- Conveniences
 
 -- We can rewrite our fst and snd functions to use implict parameters
-def fst' {ta : Type} {tb : Type} : ta → tb → ta := fun first_elem _ => first_elem
+def fst'' {α : Type} {β : Type} : Tuple' α β → α :=
+  fun tup => tup α (fun x _ => x)
 
--- The usual notation is to use greek letters for type parameters
-def snd' {α β : Type} : α → β → α := fun first_elem _ => first_elem
-#check ℝ
+def snd'' {α β : Type} : Tuple' α β → β :=
+  fun tup => tup β (fun _ y => y)
+
 -- Example: the S K combinators
 -- K x y   = x
 -- S x y z = x z (y z)
@@ -134,38 +161,3 @@ def s' {α : Type} {β : Type} {γ : Type} (y : β → α) (x : β → α → γ
   apply z
   apply y
   apply z
-
--- Say we would like to define a ring
--- and define multiplication and addition ourselves
-def binop (α : Type) := α → α → α
-
--- Axioms for rings
--- + axioms:
---   + is associative
---   + is commutative
---   there is an additive identity
---   there is an additive inverse
--- * axioms:
---   * is associative
---   there is a multiplicative identity
--- * distributes over +
-def associative {α : Type} (op : binop α) (a b c : α) := op (op a b) c = op a (op b c)
-
-def plus_commutative {α : Type} (opplus : binop α) (a b : α) := opplus a b  = opplus b a
-def add_identity {α : Type} (opplus : binop α) (a zero : α) := opplus a zero = a
-def add_inverse {α : Type} (opplus : binop α) (a inv zero : α) :=
-  let has_identity := add_identity opplus a zero
-  has_identity → opplus a inv = zero
-
-def mul_identity {α : Type} (opmul : binop α) (a id : α) := opmul a id = a ∧ opmul id a = a
-
-def mul_distrib {α : Type} (opmul opplus : binop α) (a b c : α) :=
-  let left := opmul a (opmul b c) = opplus (opmul a b) (opmul a c)
-  let right := opmul (opplus b c) a = opplus (opmul b a) (opmul c a)
-
-  left ∧ right
-
--- Let's prove the identity is unique
--- Additive identity in a group is unique
-lemma add_identity_unique {α : Type} (opplus : binop α) (a : α) : ∃ id₁ id₂, (∀ b, add_identity opplus b id₁ ∧ add_identity opplus b id₂) → id₁ = id₂ := by
-    sorry
