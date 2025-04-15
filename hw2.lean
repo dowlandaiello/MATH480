@@ -26,7 +26,6 @@ def my_min (a b : ℕ) : ℕ :=
 
 lemma my_min_eq_min : my_min = min := funext fun x => funext fun b => by
   unfold my_min
-  show (if x < b then x else b) = min x b
   rw [min_def x b]
   split_ifs
   case pos => rfl
@@ -69,13 +68,11 @@ example : my_min a b = my_min b a := by
 
 --Problem 3: this is min_assoc in mathlib
 example : my_min (my_min a b) c = my_min a (my_min b c) := by
-  repeat rw [my_min_eq_min]
-  rw [min_assoc]
+  repeat rw [my_min_eq_min, min_assoc]
 
 --Problem 4: this is min_add_add_right in mathlib
 example : my_min a b + c = my_min (a + c) (b + c) := by
-  rw [my_min_eq_min]
-  rw [min_add]
+  rw [my_min_eq_min, min_add]
 
 --Bonus problem: Show that our definition agree's with mathlib's.
 example : my_min a b = min a b := congr_fun (congr_fun my_min_eq_min a) b
@@ -83,26 +80,29 @@ example : my_min a b = min a b := congr_fun (congr_fun my_min_eq_min a) b
 --Problem 5: do not use abs_neg
 example (x : ℝ) : |-x| = |x| := by
   show -x ⊔ -(-x) = x ⊔ -x
-  rw [neg_neg]
-  rw [max_comm]
+  rw [neg_neg, max_comm]
 
 --Problem 6: do not use abs_sub_abs_le_abs_sub
 #check (abs_add : ∀ a b : ℝ, |a + b| ≤ |a| + |b|)
 variable (a b : ℝ)
 example : |a| - |b| ≤ |a - b| := by
   have h := abs_add' a (-b)
-  rw [add_comm (-b) a] at h
-  rw [← sub_eq_add_neg] at h
-  rw [abs_neg] at h
-
-  have h₁ : |a| - |b| ≤ |a - b| := by
-    linarith
-
-  apply h₁
-
+  rw [add_comm (-b) a, ← sub_eq_add_neg, abs_neg, add_comm] at h
+  rw [tsub_le_iff_right]
+  exact h
 
 --Problem 7:
 example : P ∨ Q → (P → R) → (Q → R) → R := Or.elim
+
+variable (P Q R : Prop)
+
+example : P ∨ Q → (P → R) → (Q → R) → R
+  | Or.inl h, p_r, _ => p_r h
+  | Or.inr h, _, q_r => q_r h
+
+example : P ∨ Q → (P → R) → (Q → R) → R := fun p_or_q p_r q_r => match p_or_q with
+  | Or.inl h => p_r h
+  | Or.inr h => q_r h
 
 --Problem 8: the limit of the 0 sequence is 0
 
@@ -119,7 +119,12 @@ example : TendsTo (fun n ↦ 0) 0
  example : TendsTo (fun n ↦ 1/n) 0
    | ε, (he_zero : 0 < ε) => ⟨Nat.ceil (1 / ε) + 1, fun x (h_x : ⌈1 / ε⌉₊ + 1 ≤ x) => by
      simp
-     rw [abs_of_pos (by simp [Nat.cast_pos]; linarith)]
+     have h0 : 0 < ⌈ε⁻¹⌉₊ := Nat.ceil_pos.mpr (inv_pos.mpr he_zero)
+     have h0a : ⌈ε⁻¹⌉₊ <  ⌈ε⁻¹⌉₊ + 1 := by
+       simp
+     have h1 : 0 < x := by
+       exact (lt_trans h0 (lt_of_lt_of_le h0a (by simp_all)))
+     rw [abs_of_pos (by simp [Nat.cast_pos]; exact h1)]
      apply inv_lt_of_inv_lt₀
      exact he_zero
      simp_all
@@ -132,32 +137,32 @@ example : TendsTo (fun n ↦ 0) 0
    ⟩
 
 --Problem 10: limit of a sum is the sum of the limits
+-- Note: this can be shortened a ton with linarith, but I omitted that.
+-- Same with a bunch of others.
 theorem tendsTo_add {a₁ a₂ : ℕ → ℝ} {L₁ L₂ : ℝ} (h₁ : TendsTo a₁ L₁) (h₂ : TendsTo a₂ L₂) :
     TendsTo (fun n ↦ a₁ n + a₂ n) (L₁ + L₂) := fun ε hε =>
-    -- Ideal case: ε > 0, a₁ x + a₂ x - (L₁ + L₂) = 0
-    -- We already know Nat.ceil (1 / ε) + 1 will mean ⌈1 / ε⌉₊ + 1 ≤ x
-    -- which produces a ratio smaller than x
-    -- We're not dealing with ratios here, so we can't do that
-    -- However, (L₁ + L₂) - (L₁ + L₂) will get us there
-    --  the functions a₁ and a₂ respectively already tend to L₁ and L₂.
-    -- This means, we can pattern match the N values from each
     let ⟨N₁, h_N₁⟩ := h₁ (ε / 2) (by simp [hε])
-    let ⟨N₂, h_N₂⟩ := h₂ (ε / 2) (by simp[hε])
+    let ⟨N₂, h_N₂⟩ := h₂ (ε / 2) (by simp [hε])
 
     ⟨max N₁ N₂, fun x hx => by
       let ⟨x_ge_N₁, x_ge_N₂⟩ : x ≥ N₁ ∧ x ≥ N₂ := max_le_iff.mp (by simp_all)
       let h_Nx₁ := h_N₁ x x_ge_N₁
       let h_Nx₂ := h_N₂ x x_ge_N₂
       simp_all
-      let h_εhalf_lt_ε : ε / 2 < ε := div_lt_self hε (by simp)
-      let h_add_lt_ε := abs_add (a₁ x - L₁) (a₂ x - L₂)
       let h₂ : |a₁ x + a₂ x - (L₁ + L₂)| ≤ |a₁ x - L₁| + |a₂ x - L₂| := by {
         calc
-          |a₁ x + a₂ x - (L₁ + L₂)| = |a₁ x - L₁ + (a₂ x - L₂)| := by ring_nf
-          |a₁ x - L₁ + (a₂ x - L₂)| ≤ |a₁ x - L₁| + |a₂ x - L₂| := by
-            exact h_add_lt_ε
+          |a₁ x + a₂ x - (L₁ + L₂)| = |(a₁ x - L₁) + (a₂ x - L₂)| := by
+            rw [sub_eq_add_neg]
+            simp
+            -- Note: doing the rearranging is kind of annoying here
+            -- seems kind of pointless to handwrite
+            -- This isn't really critical to the problem, so I left it
+            -- Handwrote linarith though
+            ring_nf
+          |(a₁ x - L₁) + (a₂ x - L₂)| ≤ |a₁ x - L₁| + |a₂ x - L₂| := by
+            simp [abs_add_le]
       }
-      let h₃ : |a₁ x - L₁| + |a₂ x - L₂| < ε := by
-        linarith
-      linarith
+      let h₃ := add_lt_add_of_lt_of_le h_Nx₁ (LT.lt.le h_Nx₂)
+      simp at h₃
+      simp [lt_of_le_of_lt h₂ h₃]
     ⟩

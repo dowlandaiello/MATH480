@@ -84,7 +84,7 @@ def myfunc : MyType → MyType := fun x => x
 def Tuple : Type → Type → Type 1 := fun _t1 _t2 => Type
 
 -- Now, we can make a Tuple of ℕ and ℝ
-def my_tup : Tuple ℝ ℕ := sorry
+def my_tup : Tuple ℝ ℕ := Sort 0
 
 -- Here, we called Tuple as a function to create a new type, which is the type of my_tup
 
