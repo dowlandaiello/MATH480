@@ -161,3 +161,34 @@ def s' {α : Type} {β : Type} {γ : Type} (y : β → α) (x : β → α → γ
   apply z
   apply y
   apply z
+
+-- Show this doesn't work for implict argument
+def bin_op (α : Type) := α → α → α
+
+class MyGroup (α : Type) where
+  id  : α
+  inv : α → α
+
+  op : bin_op α
+
+  op_assoc  (a b c : α) : op a (op b c) = op (op a b) c
+  inv_left  (a : α)     : op (inv a) a = id
+  inv_right (a : α)     : op a (inv a) = id
+  id_left   (a : α)     : op id a = a
+  id_right  (a : α)     : op a id = a
+
+section
+
+open MyGroup
+
+theorem inv_id {α : Type} (G : MyGroup α) : op G.id (G.inv G.id) = G.id := Eq.trans (inv_right G.id) rfl
+
+instance : MyGroup ℝ where
+  id := 1
+  inv := fun n => 1 / n
+
+  op := (. * .)
+  op_assoc (a b c : ℝ) := by
+    simp [mul_assoc]
+  inv_left (a : ℝ) := by
+    show (op (inv a) a = id)
