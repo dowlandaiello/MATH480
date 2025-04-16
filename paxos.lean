@@ -67,6 +67,10 @@ def advance_proposer {α : Type} {n quorum : ℕ} (h1 : n > 1) (h2 : quorum ≥ 
      | Message.accept _ _ => ⟨p, ret_msgs⟩
   ) ⟨p, List.nil⟩ p.queue
 
+structure System (α : Type) (np : ℕ) (na : ℕ) (quorum : ℕ) (h1 : quorum ≥ (np + na) / 2) where
+  acceptors : Vector (Acceptor α (np + na)) na
+  proposers : Vector (Proposer α (np + na) quorum h1) na
+
 def send {α : Type} (n : ℕ) : AddressedMessage α n → MsgQueue α n → MsgQueue α n := (. :: .)
 
 def learn {α : Type} (n : ℕ) (acceptors : List $ Acceptor α n) (h1 : acceptors.length ≥ 1): α := (acceptors.get ⟨0, by linarith⟩).val
