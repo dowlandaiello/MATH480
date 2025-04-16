@@ -69,4 +69,5 @@ def advance_proposer {α : Type} {n quorum : ℕ} (h1 : n > 1) (h2 : quorum ≥ 
 
 def send {α : Type} (n : ℕ) : AddressedMessage α n → MsgQueue α n → MsgQueue α n := (. :: .)
 
+def learn {α : Type} (n : ℕ) (acceptors : List $ Acceptor α n) (h1 : acceptors.length ≥ 1): α := (acceptors.get ⟨0, by linarith⟩).val
 
