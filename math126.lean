@@ -84,6 +84,5 @@ lemma dot_distributes (a : MyVector) (b : MyVector) (c : MyVector) : dot a (add 
   | (x₁, (y₁, z₁)), (x₂, (y₂, z₂)), (x₃, (y₃, z₃)) =>
     ring
 
---theorem dot_geometric_eq (a : MyVector) (b : MyVector) (θ : ℝ) (h1 : Real.sin θ = (magnitude (sub a b)) / (magnitude a)) : dot a b = (magnitude a) * (magnitude b) * (Real.cos θ) := by
+example : ∃ a b c, 
 
-lemma orthoganol : 
